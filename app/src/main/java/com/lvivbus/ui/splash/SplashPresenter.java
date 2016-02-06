@@ -3,7 +3,7 @@ package com.lvivbus.ui.splash;
 import android.content.Intent;
 import com.lvivbus.model.db.BusDAO;
 import com.lvivbus.model.http.Converter;
-import com.lvivbus.model.http.LvivBusAPI;
+import com.lvivbus.model.http.BusAPI;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.map.MapActivity;
 import com.lvivbus.utils.L;
@@ -36,7 +36,7 @@ public class SplashPresenter {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                List<Bus> busList = Converter.toBusList(LvivBusAPI.getBusList());
+                List<Bus> busList = Converter.toBusList(BusAPI.getBusList());
                 BusDAO.save(busList);
                 L.v(String.format("Buses saved: %d", busList.size()));
                 onLoadingComplete();
