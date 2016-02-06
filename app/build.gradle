@@ -43,4 +43,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-maps:8.4.0'
     compile 'io.realm:realm-android:0.87.4'
     compile 'org.immutables:gson:2.1.10'
+    compile 'org.greenrobot:eventbus:3.0.0'
 }

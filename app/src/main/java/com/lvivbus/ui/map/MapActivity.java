@@ -10,6 +10,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.lvivbus.ui.R;
 import com.lvivbus.ui.data.BusMarker;
+import com.lvivbus.utils.L;
 
 import java.util.List;
 
@@ -24,12 +25,11 @@ public class MapActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initView();
+
         markerMap = new SparseArray<Marker>();
         mapPresenter = new MapPresenter();
         mapPresenter.onAttachActivity(this);
-
-        initView();
-
     }
 
     @Override
@@ -47,13 +47,26 @@ public class MapActivity extends AppCompatActivity {
 
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(49.8416998d, 24.0295719d), 14);
                 map.animateCamera(cameraUpdate);
-
-                mapPresenter.onMapReady();
             }
         });
     }
 
-    public void displayMarkers(@NonNull List<BusMarker> busMarkers) {
+    public void clearAllMarkers() {
+        map.clear();
+        markerMap.clear();
+    }
+
+    public void displayMarkers(@NonNull final List<BusMarker> markerList) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                displayMarkersInternal(markerList);
+            }
+        });
+    }
+
+    private void displayMarkersInternal(@NonNull List<BusMarker> busMarkers) {
+        L.v("Displaying markers: " + busMarkers.size());
         for (BusMarker busMarker : busMarkers) {
             Marker storedMarker = markerMap.get(busMarker.getVehicleId());
             if (storedMarker == null) {
