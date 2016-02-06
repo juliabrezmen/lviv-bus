@@ -1,6 +1,8 @@
-package com.lvivbus.presenters;
+package com.lvivbus.ui.map;
 
-import com.lvivbus.ui.MapActivity;
+import com.google.android.gms.maps.model.LatLng;
+
+import java.util.ArrayList;
 
 public class MapPresenter {
     private MapActivity mapActivity;
@@ -11,5 +13,9 @@ public class MapPresenter {
 
     public void onDetachActivity() {
         mapActivity = null;
+    }
+
+    public void onMapReady() {
+        mapActivity.displayMarkers(new ArrayList<LatLng>());
     }
 }
