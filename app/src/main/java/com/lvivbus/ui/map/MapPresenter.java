@@ -18,22 +18,30 @@ import java.util.concurrent.TimeUnit;
 public class MapPresenter {
 
     private Executor executor;
-    private MapActivity mapActivity;
+    private MapActivity activity;
 
     public void onAttachActivity(MapActivity mapActivity) {
-        this.mapActivity = mapActivity;
+        this.activity = mapActivity;
         this.executor = Executors.newSingleThreadExecutor();
         EventBus.getDefault().register(this);
     }
 
     public void onDetachActivity() {
-        mapActivity = null;
+        activity = null;
         EventBus.getDefault().unregister(this);
+    }
+
+    public void onToolbarFilterClicked() {
+        // TODO launch filter activity
+    }
+
+    public void onToolbarBackClicked() {
+        activity.finish();
     }
 
     @Subscribe
     public void onEvent(final SelectBusEvent event) {
-        mapActivity.clearAllMarkers();
+        activity.clearAllMarkers();
         loadMarkers(event.getBus());
     }
 
@@ -43,7 +51,7 @@ public class MapPresenter {
             public void run() {
                 onMarkersLoaded(Converter.toBusMarkerList(BusAPI.getBusLocation(bus.getCode())));
                 SystemClock.sleep(TimeUnit.SECONDS.toMillis(5));
-                if (mapActivity != null) {
+                if (activity != null) {
                     executor.execute(this);
                 }
             }
@@ -51,8 +59,8 @@ public class MapPresenter {
     }
 
     private void onMarkersLoaded(@NonNull List<BusMarker> markerList) {
-        if (mapActivity != null) {
-            mapActivity.displayMarkers(markerList);
+        if (activity != null) {
+            activity.displayMarkers(markerList);
         }
     }
 }

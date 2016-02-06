@@ -3,7 +3,10 @@ package com.lvivbus.ui.map;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.SparseArray;
+import android.view.Menu;
+import android.view.MenuItem;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -16,7 +19,7 @@ import java.util.List;
 
 public class MapActivity extends AppCompatActivity {
 
-    private MapPresenter mapPresenter;
+    private MapPresenter presenter;
     private GoogleMap map;
     private SparseArray<Marker> markerMap;
 
@@ -25,17 +28,44 @@ public class MapActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initToolBar();
         initView();
 
         markerMap = new SparseArray<Marker>();
-        mapPresenter = new MapPresenter();
-        mapPresenter.onAttachActivity(this);
+        presenter = new MapPresenter();
+        presenter.onAttachActivity(this);
     }
 
     @Override
     protected void onDestroy() {
-        mapPresenter.onDetachActivity();
+        presenter.onDetachActivity();
         super.onDestroy();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.map_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.action_filter:
+                presenter.onToolbarFilterClicked();
+                return true;
+            case android.R.id.home:
+                presenter.onToolbarBackClicked();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void initToolBar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
     }
 
     private void initView() {
