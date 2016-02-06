@@ -1,5 +1,6 @@
 package com.lvivbus.ui.map;
 
+import android.content.Intent;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import com.lvivbus.model.http.BusAPI;
@@ -7,6 +8,7 @@ import com.lvivbus.model.http.Converter;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.data.BusMarker;
 import com.lvivbus.ui.event.SelectBusEvent;
+import com.lvivbus.ui.selectbus.BusListActivity;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
@@ -32,7 +34,8 @@ public class MapPresenter {
     }
 
     public void onToolbarFilterClicked() {
-        // TODO launch filter activity
+        Intent intent = new Intent(activity, BusListActivity.class);
+        activity.startActivity(intent);
     }
 
     public void onToolbarBackClicked() {
