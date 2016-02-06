@@ -22,4 +22,12 @@ public class L {
         Log.w(TAG, msg, t);
     }
 
+    public static void w(String msg) {
+        Log.w(TAG, msg);
+    }
+
+    public static void w(Throwable t) {
+        Log.w(TAG, t);
+    }
+
 }

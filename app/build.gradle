@@ -39,5 +39,8 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.squareup.okhttp3:okhttp:3.0.1'
     compile 'com.google.android.gms:play-services-maps:8.4.0'
+    compile 'io.realm:realm-android:0.87.4'
+    compile 'org.immutables:gson:2.1.10'
 }
