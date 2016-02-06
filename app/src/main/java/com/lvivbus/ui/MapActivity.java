@@ -2,11 +2,15 @@ package com.lvivbus.ui;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.lvivbus.presenters.MapPresenter;
 
-public class MapActivity extends AppCompatActivity {
+public class MapActivity extends AppCompatActivity{
 
     private MapPresenter mapPresenter;
+    private GoogleMap map;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -15,6 +19,19 @@ public class MapActivity extends AppCompatActivity {
 
         mapPresenter = new MapPresenter();
         mapPresenter.onAttachActivity(this);
+
+        initView();
+    }
+
+    private void initView() {
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                map = googleMap;
+            }
+        });
     }
 
     @Override
@@ -22,4 +39,5 @@ public class MapActivity extends AppCompatActivity {
         mapPresenter.onDetachActivity();
         super.onDestroy();
     }
+
 }
