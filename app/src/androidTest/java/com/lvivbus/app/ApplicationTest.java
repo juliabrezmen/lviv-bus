@@ -1,4 +1,4 @@
-package com.lviv_bus.app;
+package com.lvivbus.app;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
