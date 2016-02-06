@@ -1,6 +1,6 @@
 package com.lvivbus.presenters;
 
-import com.lvivbus.app.MapActivity;
+import com.lvivbus.ui.MapActivity;
 
 public class MapPresenter {
     private MapActivity mapActivity;
