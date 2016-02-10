@@ -57,7 +57,7 @@ public class MapActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.map_main, menu);
+        mToolbar.inflateMenu(R.menu.map_main);
         return true;
     }
 
@@ -67,9 +67,6 @@ public class MapActivity extends AppCompatActivity {
         switch (id) {
             case R.id.action_filter:
                 presenter.onToolbarFilterClicked();
-                return true;
-            case android.R.id.home:
-                presenter.onToolbarBackClicked();
                 return true;
         }
 

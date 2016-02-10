@@ -1,5 +1,6 @@
 package com.lvivbus.utils;
 
+import android.os.Looper;
 import android.util.Log;
 
 public class L {
@@ -28,6 +29,10 @@ public class L {
 
     public static void w(Throwable t) {
         Log.w(TAG, t);
+    }
+
+    public static void logIsUiThread() {
+        v("Is UI thread: " + (Looper.myLooper() == Looper.getMainLooper()));
     }
 
 }

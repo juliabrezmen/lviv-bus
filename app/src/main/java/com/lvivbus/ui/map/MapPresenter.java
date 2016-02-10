@@ -1,7 +1,8 @@
 package com.lvivbus.ui.map;
 
 import android.content.Intent;
-import android.os.SystemClock;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import com.lvivbus.model.http.BusAPI;
 import com.lvivbus.model.http.Converter;
@@ -13,18 +14,20 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class MapPresenter {
 
-    private Executor executor;
+    private Handler handler;
     private MapActivity activity;
+    private Bus mBus;
+    private boolean loadingStared;
 
     public void onAttachActivity(MapActivity mapActivity) {
-        this.activity = mapActivity;
-        this.executor = Executors.newSingleThreadExecutor();
+        activity = mapActivity;
+        HandlerThread handlerThread = new HandlerThread(HandlerThread.class.getName());
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
         EventBus.getDefault().register(this);
     }
 
@@ -34,11 +37,14 @@ public class MapPresenter {
     }
 
     public void onActivityNotVisible() {
-
+        loadingStared = false;
+        handler.removeCallbacksAndMessages(null);
     }
 
     public void onActivityVisible() {
-
+        if (mBus != null) {
+            loadMarkers(mBus);
+        }
     }
 
     public void onToolbarFilterClicked() {
@@ -46,28 +52,25 @@ public class MapPresenter {
         activity.startActivity(intent);
     }
 
-    public void onToolbarBackClicked() {
-        activity.finish();
-    }
-
     @Subscribe
     public void onEvent(final SelectBusEvent event) {
-        activity.setSubtitle(event.getBus().getName());
+        mBus = event.getBus();
+        activity.setSubtitle(mBus.getName());
         activity.clearAllMarkers();
-        loadMarkers(event.getBus());
+        loadMarkers(mBus);
     }
 
     private void loadMarkers(@NonNull final Bus bus) {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                onMarkersLoaded(Converter.toBusMarkerList(BusAPI.getBusLocation(bus.getCode())));
-                SystemClock.sleep(TimeUnit.SECONDS.toMillis(5));
-                if (activity != null) {
-                    executor.execute(this);
+        if (!loadingStared) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    onMarkersLoaded(Converter.toBusMarkerList(BusAPI.getBusLocation(bus.getCode())));
+                    handler.postDelayed(this, TimeUnit.SECONDS.toMillis(5));
                 }
-            }
-        });
+            });
+            loadingStared = true;
+        }
     }
 
     private void onMarkersLoaded(@NonNull List<BusMarker> markerList) {
