@@ -23,7 +23,7 @@ public class BusListPresenter {
     }
 
     public void onBusClicked(Bus bus) {
-        EventBus.getDefault().post(new SelectBusEvent(bus));
+        EventBus.getDefault().post(new SelectBusEvent(Bus.makeRawCopy(bus)));
         activity.finish();
     }
 
