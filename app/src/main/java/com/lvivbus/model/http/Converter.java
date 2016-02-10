@@ -32,6 +32,7 @@ public class Converter {
             BusMarker marker = new BusMarker();
             marker.setLat(locationResult.y);
             marker.setLon(locationResult.x);
+            marker.setAngle(locationResult.angle);
             marker.setVehicleId(locationResult.vehicleId);
             latLngList.add(marker);
         }

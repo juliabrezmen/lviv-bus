@@ -33,6 +33,14 @@ public class MapPresenter {
         EventBus.getDefault().unregister(this);
     }
 
+    public void onActivityNotVisible() {
+
+    }
+
+    public void onActivityVisible() {
+
+    }
+
     public void onToolbarFilterClicked() {
         Intent intent = new Intent(activity, BusListActivity.class);
         activity.startActivity(intent);
@@ -44,6 +52,7 @@ public class MapPresenter {
 
     @Subscribe
     public void onEvent(final SelectBusEvent event) {
+        activity.setSubtitle(event.getBus().getName());
         activity.clearAllMarkers();
         loadMarkers(event.getBus());
     }

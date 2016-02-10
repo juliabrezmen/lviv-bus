@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId "com.lvivbus"
-        minSdkVersion 9
+        minSdkVersion 16
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -44,5 +44,5 @@ dependencies {
     compile 'io.realm:realm-android:0.87.4'
     compile 'org.immutables:gson:2.1.10'
     compile 'org.greenrobot:eventbus:3.0.0'
-    compile 'com.android.support:recyclerview-v7:23.+'
+    compile 'com.android.support:recyclerview-v7:23.1.1'
 }

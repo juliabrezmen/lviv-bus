@@ -22,6 +22,7 @@ public class MapActivity extends AppCompatActivity {
     private MapPresenter presenter;
     private GoogleMap map;
     private SparseArray<Marker> markerMap;
+    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +41,18 @@ public class MapActivity extends AppCompatActivity {
     protected void onDestroy() {
         presenter.onDetachActivity();
         super.onDestroy();
+    }
+
+    @Override
+    protected void onPause() {
+        presenter.onActivityNotVisible();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        presenter.onActivityVisible();
+        super.onResume();
     }
 
     @Override
@@ -63,9 +76,13 @@ public class MapActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public void setSubtitle(@NonNull String text) {
+        mToolbar.setSubtitle(text);
+    }
+
     private void initToolBar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
     }
 
     private void initView() {
