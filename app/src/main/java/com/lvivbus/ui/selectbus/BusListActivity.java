@@ -15,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import com.lvivbus.ui.R;
 import com.lvivbus.ui.data.Bus;
+import com.lvivbus.ui.utils.DividerItemDecoration;
 import com.lvivbus.utils.L;
 
 import java.util.List;
@@ -49,33 +50,28 @@ public class BusListActivity extends AppCompatActivity {
 
         MenuItem searchItem = menu.findItem(R.id.action_search);
 
-        SearchManager searchManager = (SearchManager) this.getSystemService(Context.SEARCH_SERVICE);
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
 
-        SearchView searchView = null;
-        if (searchItem != null) {
-            searchView = (SearchView) searchItem.getActionView();
-        }
-        if (searchView != null) {
-            searchView.setSearchableInfo(searchManager.getSearchableInfo(this.getComponentName()));
-            searchView.setQuery("", true);
-            searchView.setFocusable(true);
-            searchView.setIconified(false);
-            searchView.requestFocusFromTouch();
-            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-                @Override
-                public boolean onQueryTextChange(String newText) {
-                    L.i("onQueryTextChange " + newText);
-                    adapter.filter(newText);
-                    return true;
-                }
+        SearchView searchView = (SearchView) searchItem.getActionView();
 
-                @Override
-                public boolean onQueryTextSubmit(String query) {
-                    L.i("onQueryTextSubmit " + query);
-                    return true;
-                }
-            });
-        }
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(this.getComponentName()));
+        searchView.setFocusable(true);
+        searchView.setIconified(false);
+        searchView.requestFocusFromTouch();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                L.i("onQueryTextChange " + newText);
+                adapter.filter(newText);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                L.i("onQueryTextSubmit " + query);
+                return true;
+            }
+        });
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -100,8 +96,16 @@ public class BusListActivity extends AppCompatActivity {
         RecyclerView rvBusList = (RecyclerView) findViewById(R.id.rv_bus_list);
         rvBusList.setHasFixedSize(true);
 
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(this, R.drawable.divider);
+
+        int leftPadding = (int) getResources().getDimension(R.dimen.decorator_left_padding);
+        int rightPadding = (int) getResources().getDimension(R.dimen.decorator_right_padding);
+        dividerItemDecoration.setPadding(leftPadding, rightPadding);
+        rvBusList.addItemDecoration(dividerItemDecoration);
+
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         rvBusList.setLayoutManager(layoutManager);
+
 
         adapter = new BusListAdapter(new BusListAdapter.Listener() {
             @Override
