@@ -1,13 +1,21 @@
 package com.lvivbus.ui.selectbus;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import com.lvivbus.ui.R;
 import com.lvivbus.ui.data.Bus;
+import com.lvivbus.utils.L;
 
 import java.util.List;
 
@@ -19,6 +27,8 @@ public class BusListActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bus_list_activity);
+
+        initToolBar();
         initView();
 
         presenter = new BusListPresenter();
@@ -30,6 +40,55 @@ public class BusListActivity extends AppCompatActivity {
     protected void onDestroy() {
         presenter.onDetachActivity();
         super.onDestroy();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.search_bus, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+
+        SearchManager searchManager = (SearchManager) this.getSystemService(Context.SEARCH_SERVICE);
+
+        SearchView searchView = null;
+        if (searchItem != null) {
+            searchView = (SearchView) searchItem.getActionView();
+        }
+        if (searchView != null) {
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(this.getComponentName()));
+            searchView.setQuery("", true);
+            searchView.setFocusable(true);
+            searchView.setIconified(false);
+            searchView.requestFocusFromTouch();
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    L.i("onQueryTextChange " + newText);
+                    adapter.filter(newText);
+                    return true;
+                }
+
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    L.i("onQueryTextSubmit " + query);
+                    return true;
+                }
+            });
+        }
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case android.R.id.home:
+                presenter.onToolbarBackClicked();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     public void setData(@NonNull List<Bus> busList) {
@@ -51,5 +110,11 @@ public class BusListActivity extends AppCompatActivity {
             }
         });
         rvBusList.setAdapter(adapter);
+    }
+
+    private void initToolBar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
     }
 }

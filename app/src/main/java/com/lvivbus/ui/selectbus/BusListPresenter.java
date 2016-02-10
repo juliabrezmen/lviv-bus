@@ -26,4 +26,8 @@ public class BusListPresenter {
         EventBus.getDefault().post(new SelectBusEvent(bus));
         activity.finish();
     }
+
+    public void onToolbarBackClicked() {
+        activity.finish();
+    }
 }

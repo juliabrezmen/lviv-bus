@@ -13,12 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BusListAdapter extends RecyclerView.Adapter<BusListAdapter.ViewHolder> {
-    private List<Bus> busList;
+    private List<Bus> filterList;
+    private List<Bus> originList;
     private Listener listener;
 
     public BusListAdapter(Listener listener) {
-        busList = new ArrayList<Bus>();
+        this.filterList = new ArrayList<Bus>();
         this.listener = listener;
+        this.originList = new ArrayList<Bus>();
     }
 
     @Override
@@ -29,7 +31,7 @@ public class BusListAdapter extends RecyclerView.Adapter<BusListAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int i) {
-        final Bus bus = busList.get(i);
+        final Bus bus = filterList.get(i);
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -42,12 +44,25 @@ public class BusListAdapter extends RecyclerView.Adapter<BusListAdapter.ViewHold
 
     @Override
     public int getItemCount() {
-        return busList.size();
+        return filterList.size();
     }
 
 
     public void setData(@NonNull List<Bus> busList) {
-        this.busList = busList;
+        this.originList.addAll(busList);
+        this.filterList.addAll(busList);
+    }
+
+    public void filter(String newText) {
+        filterList.clear();
+        for (Bus bus : originList) {
+            String busName= bus.getName().toLowerCase();
+            if (busName.contains(newText.toLowerCase())) {
+                filterList.add(bus);
+            }
+        }
+        this.notifyDataSetChanged();
+
     }
 
     public interface Listener {
