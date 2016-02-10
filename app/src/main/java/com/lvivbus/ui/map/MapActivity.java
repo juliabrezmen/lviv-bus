@@ -1,13 +1,21 @@
 package com.lvivbus.ui.map;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
-import com.google.android.gms.maps.*;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -18,6 +26,8 @@ import com.lvivbus.utils.L;
 import java.util.List;
 
 public class MapActivity extends AppCompatActivity {
+
+    private static final int REQUEST_CODE_ACCESS_LOCATION = 1;
 
     private MapPresenter presenter;
     private GoogleMap map;
@@ -56,6 +66,15 @@ public class MapActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CODE_ACCESS_LOCATION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                displayMyLocation();
+            }
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         mToolbar.inflateMenu(R.menu.map_main);
         return true;
@@ -75,24 +94,6 @@ public class MapActivity extends AppCompatActivity {
 
     public void setSubtitle(@NonNull String text) {
         mToolbar.setSubtitle(text);
-    }
-
-    private void initToolBar() {
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
-    }
-
-    private void initView() {
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(GoogleMap googleMap) {
-                map = googleMap;
-
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(49.8416998d, 24.0295719d), 14);
-                map.animateCamera(cameraUpdate);
-            }
-        });
     }
 
     public void clearAllMarkers() {
@@ -121,6 +122,33 @@ public class MapActivity extends AppCompatActivity {
                 LatLng position = new LatLng(busMarker.getLat(), busMarker.getLon());
                 storedMarker.setPosition(position);
             }
+        }
+    }
+
+    private void initToolBar() {
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+    }
+
+    private void initView() {
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                map = googleMap;
+                displayMyLocation();
+            }
+        });
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private void displayMyLocation() {
+        int accessFineLocationResult = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        int accessCoarseLocation = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+        if (accessFineLocationResult != PackageManager.PERMISSION_GRANTED && accessCoarseLocation != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_ACCESS_LOCATION);
+        } else {
+            map.setMyLocationEnabled(true);
         }
     }
 
