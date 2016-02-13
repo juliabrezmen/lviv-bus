@@ -129,6 +129,7 @@ public class MapActivity extends AppCompatActivity {
             @Override
             public void onMapReady(GoogleMap googleMap) {
                 map = googleMap;
+                presenter.onMapReady(googleMap);
                 displayMyLocation();
             }
         });

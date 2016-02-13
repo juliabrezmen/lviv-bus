@@ -3,6 +3,10 @@ package com.lvivbus.ui.map;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
+import android.support.annotation.NonNull;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.lvivbus.model.http.BusAPI;
 import com.lvivbus.model.http.Converter;
 import com.lvivbus.ui.data.Bus;
@@ -55,6 +59,11 @@ public class MapPresenter {
         activity.clearAllMarkers();
     }
 
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        LatLng lvivCenter = new LatLng(49.842465, 24.026625);
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lvivCenter, 12f));
+    }
+
     private void initTimer() {
         timer = new CountDownTimer(TimeUnit.MINUTES.toMillis(1), TimeUnit.SECONDS.toMillis(5)) {
             @Override
@@ -93,7 +102,7 @@ public class MapPresenter {
             task.cancel(false);
         }
 
-        if(timer != null) {
+        if (timer != null) {
             timer.cancel();
         }
     }
