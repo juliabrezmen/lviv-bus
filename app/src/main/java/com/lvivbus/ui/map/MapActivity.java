@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.UiThread;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -101,18 +102,10 @@ public class MapActivity extends AppCompatActivity {
         markerMap.clear();
     }
 
+    @UiThread
     public void displayMarkers(@NonNull final List<BusMarker> markerList) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                displayMarkersInternal(markerList);
-            }
-        });
-    }
-
-    private void displayMarkersInternal(@NonNull List<BusMarker> busMarkers) {
-        L.v("Displaying markers: " + busMarkers.size());
-        for (BusMarker busMarker : busMarkers) {
+        L.v("Displaying markers: " + markerList.size());
+        for (BusMarker busMarker : markerList) {
             Marker storedMarker = markerMap.get(busMarker.getVehicleId());
             if (storedMarker == null) {
                 LatLng position = new LatLng(busMarker.getLat(), busMarker.getLon());
