@@ -1,10 +1,11 @@
 package com.lvivbus.ui.data;
 
 import android.support.annotation.NonNull;
+import com.lvivbus.ui.selectbus.Displayable;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
-public class Bus extends RealmObject {
+public class Bus extends RealmObject implements Displayable {
 
     @PrimaryKey
     private int id;

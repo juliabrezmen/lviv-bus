@@ -87,8 +87,8 @@ public class BusListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void setData(@NonNull List<Bus> busList) {
-        adapter.setData(busList);
+    public void setData(@NonNull List<Bus> recentList, @NonNull List<Bus> busList) {
+        adapter.setData(recentList, busList);
         adapter.notifyDataSetChanged();
     }
 
@@ -119,6 +119,5 @@ public class BusListActivity extends AppCompatActivity {
     private void initToolBar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
     }
 }
