@@ -5,7 +5,7 @@
     <item
         android:id="@+id/action_search"
         android:icon="@android:drawable/ic_menu_search"
-        android:title="Search"
+        android:title="Select bus"
         app:actionViewClass="android.support.v7.widget.SearchView"
         app:showAsAction="always"/>
 </menu>

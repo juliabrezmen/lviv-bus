@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.lvivbus.ui.R;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.data.Title;
+import com.lvivbus.ui.utils.SortUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,16 +105,20 @@ public class BusListAdapter extends RecyclerView.Adapter<BusListAdapter.ViewHold
         if (text.isEmpty()) {
             filterList.addAll(originList);
         } else {
+            List<Bus> busList = new ArrayList<Bus>();
             for (Displayable displayable : originList) {
                 if (displayable instanceof Bus) {
                     Bus bus = (Bus) displayable;
                     String busName = bus.getName().toLowerCase();
                     if (busName.contains(text.toLowerCase())) {
-                        filterList.add(bus);
+                        busList.add(bus);
                     }
                 }
             }
+            SortUtils.sortByName(busList);
+            filterList.addAll(busList);
         }
+
         this.notifyDataSetChanged();
     }
 

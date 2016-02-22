@@ -14,6 +14,8 @@ public class Bus extends RealmObject implements Displayable {
 
     private String name;
 
+    private long recentDate;
+
     public int getId() {
         return id;
     }
@@ -38,12 +40,21 @@ public class Bus extends RealmObject implements Displayable {
         this.name = name;
     }
 
+    public long getRecentDate() {
+        return recentDate;
+    }
+
+    public void setRecentDate(long recentDate) {
+        this.recentDate = recentDate;
+    }
+
     @NonNull
     public static Bus makeRawCopy(@NonNull Bus from) {
         Bus to = new Bus();
         to.setId(from.getId());
         to.setName(from.getName());
         to.setCode(from.getCode());
+        to.setRecentDate(from.getRecentDate());
 
         return to;
     }

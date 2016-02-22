@@ -10,6 +10,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -53,6 +54,8 @@ public class BusListActivity extends AppCompatActivity {
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
 
         SearchView searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setInputType(InputType.TYPE_TEXT_FLAG_AUTO_CORRECT);
 
         searchView.setSearchableInfo(searchManager.getSearchableInfo(this.getComponentName()));
         searchView.setFocusable(true);
