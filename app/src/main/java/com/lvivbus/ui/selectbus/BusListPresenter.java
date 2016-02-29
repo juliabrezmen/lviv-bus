@@ -2,11 +2,10 @@ package com.lvivbus.ui.selectbus;
 
 import com.lvivbus.model.db.BusDAO;
 import com.lvivbus.ui.data.Bus;
-import com.lvivbus.ui.event.SelectBusEvent;
+import com.lvivbus.ui.utils.PreferencesManager;
 import com.lvivbus.ui.utils.SortUtils;
 import io.realm.Realm;
 import io.realm.RealmResults;
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +29,8 @@ public class BusListPresenter {
     }
 
     public void onBusClicked(Bus bus) {
-        EventBus.getDefault().post(new SelectBusEvent(Bus.makeRawCopy(bus)));
         BusDAO.setRecentDate(bus, System.currentTimeMillis());
+        PreferencesManager.saveBus(Bus.makeRawCopy(bus), activity.getApplicationContext());
         activity.finish();
     }
 

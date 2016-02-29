@@ -11,11 +11,10 @@ import com.lvivbus.model.http.BusAPI;
 import com.lvivbus.model.http.Converter;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.data.BusMarker;
-import com.lvivbus.ui.event.SelectBusEvent;
 import com.lvivbus.ui.selectbus.BusListActivity;
+import com.lvivbus.ui.utils.PreferencesManager;
 import com.lvivbus.utils.L;
 import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -30,10 +29,17 @@ public class MapPresenter {
     public void onAttachActivity(MapActivity mapActivity) {
         activity = mapActivity;
         initTimer();
-        EventBus.getDefault().register(this);
     }
 
     public void onActivityVisible() {
+        Bus storedBus = PreferencesManager.getBus(activity.getApplicationContext());
+        if (storedBus != null) {
+            if (selectedBus == null || (selectedBus.getId() != storedBus.getId())) {
+                selectedBus = storedBus;
+                activity.setSubtitle(selectedBus.getName());
+                activity.clearAllMarkers();
+            }
+        }
         timer.start();
     }
 
@@ -50,13 +56,6 @@ public class MapPresenter {
     public void onToolbarFilterClicked() {
         Intent intent = new Intent(activity, BusListActivity.class);
         activity.startActivity(intent);
-    }
-
-    @Subscribe
-    public void onEvent(final SelectBusEvent event) {
-        selectedBus = event.getBus();
-        activity.setSubtitle(selectedBus.getName());
-        activity.clearAllMarkers();
     }
 
     public void onMapReady(@NonNull GoogleMap googleMap) {

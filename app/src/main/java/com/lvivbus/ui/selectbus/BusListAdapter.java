@@ -1,5 +1,6 @@
 package com.lvivbus.ui.selectbus;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -22,11 +23,14 @@ public class BusListAdapter extends RecyclerView.Adapter<BusListAdapter.ViewHold
     private List<Displayable> filterList;
     private List<Displayable> originList;
     private Listener listener;
+    private Context context;
 
-    public BusListAdapter(Listener listener) {
-        this.filterList = new ArrayList<Displayable>();
+    public BusListAdapter(Context context, Listener listener) {
         this.listener = listener;
-        this.originList = new ArrayList<Displayable>();
+        this.context = context;
+        filterList = new ArrayList<Displayable>();
+        originList = new ArrayList<Displayable>();
+
     }
 
     @Override
@@ -88,12 +92,10 @@ public class BusListAdapter extends RecyclerView.Adapter<BusListAdapter.ViewHold
 
     public void setData(@NonNull List<Bus> recentList, @NonNull List<Bus> busList) {
         if (!recentList.isEmpty()) {
-            Title recentTitle = new Title();
-            recentTitle.setValue("Recent");
+            Title recentTitle = new Title(context.getString(R.string.recent));
             this.filterList.add(recentTitle);
             this.filterList.addAll(recentList);
-            Title allTitle = new Title();
-            allTitle.setValue("All");
+            Title allTitle = new Title(context.getString(R.string.all));
             this.filterList.add(allTitle);
         }
         this.filterList.addAll(busList);

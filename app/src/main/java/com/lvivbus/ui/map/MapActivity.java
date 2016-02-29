@@ -98,8 +98,10 @@ public class MapActivity extends AppCompatActivity {
     }
 
     public void clearAllMarkers() {
-        map.clear();
-        markerMap.clear();
+        if (map != null) {
+            map.clear();
+            markerMap.clear();
+        }
     }
 
     @UiThread

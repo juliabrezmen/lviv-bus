@@ -110,7 +110,7 @@ public class BusListActivity extends AppCompatActivity {
         rvBusList.setLayoutManager(layoutManager);
 
 
-        adapter = new BusListAdapter(new BusListAdapter.Listener() {
+        adapter = new BusListAdapter(getApplicationContext(), new BusListAdapter.Listener() {
             @Override
             public void onBusClicked(Bus bus) {
                 presenter.onBusClicked(bus);
