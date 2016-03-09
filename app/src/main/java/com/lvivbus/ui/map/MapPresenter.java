@@ -14,7 +14,6 @@ import com.lvivbus.ui.data.BusMarker;
 import com.lvivbus.ui.selectbus.BusListActivity;
 import com.lvivbus.ui.utils.PreferencesManager;
 import com.lvivbus.utils.L;
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -50,7 +49,6 @@ public class MapPresenter {
     public void onDetachActivity() {
         cancelMarkerLoading();
         activity = null;
-        EventBus.getDefault().unregister(this);
     }
 
     public void onToolbarFilterClicked() {
