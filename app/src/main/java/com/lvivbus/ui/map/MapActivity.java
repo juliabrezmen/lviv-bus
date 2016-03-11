@@ -17,9 +17,7 @@ import android.view.MenuItem;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.*;
 import com.lvivbus.ui.R;
 import com.lvivbus.ui.data.BusMarker;
 import com.lvivbus.utils.L;
@@ -108,10 +106,13 @@ public class MapActivity extends AppCompatActivity {
     public void displayMarkers(@NonNull final List<BusMarker> markerList) {
         L.v("Displaying markers: " + markerList.size());
         for (BusMarker busMarker : markerList) {
+            L.i("Angle: " + busMarker.getAngle());
             Marker storedMarker = markerMap.get(busMarker.getVehicleId());
             if (storedMarker == null) {
                 LatLng position = new LatLng(busMarker.getLat(), busMarker.getLon());
-                Marker marker = map.addMarker(new MarkerOptions().position(position));
+                BitmapDescriptor iconArrow = BitmapDescriptorFactory.fromResource(R.drawable.ic_arrow);
+                float angle = busMarker.getAngle();
+                Marker marker = map.addMarker(new MarkerOptions().position(position).icon(iconArrow).rotation(angle).anchor(0.5f,0.5f));
                 markerMap.put(busMarker.getVehicleId(), marker);
             } else {
                 LatLng position = new LatLng(busMarker.getLat(), busMarker.getLon());
