@@ -91,6 +91,18 @@ public class MapActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        presenter.onSaveInstanceState(savedInstanceState);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        presenter.onRestoreInstanceState(savedInstanceState);
+    }
+
     public void setSubtitle(@NonNull String text) {
         mToolbar.setSubtitle(text);
     }
@@ -112,7 +124,7 @@ public class MapActivity extends AppCompatActivity {
                 LatLng position = new LatLng(busMarker.getLat(), busMarker.getLon());
                 BitmapDescriptor iconArrow = BitmapDescriptorFactory.fromResource(R.drawable.ic_arrow);
                 float angle = busMarker.getAngle();
-                Marker marker = map.addMarker(new MarkerOptions().position(position).icon(iconArrow).rotation(angle).anchor(0.5f,0.5f));
+                Marker marker = map.addMarker(new MarkerOptions().position(position).icon(iconArrow).rotation(angle).anchor(0.5f, 0.5f));
                 markerMap.put(busMarker.getVehicleId(), marker);
             } else {
                 LatLng position = new LatLng(busMarker.getLat(), busMarker.getLon());
@@ -120,6 +132,7 @@ public class MapActivity extends AppCompatActivity {
             }
         }
     }
+
 
     private void initToolBar() {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);

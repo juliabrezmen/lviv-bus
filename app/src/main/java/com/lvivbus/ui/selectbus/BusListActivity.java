@@ -28,7 +28,7 @@ public class BusListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.bus_list_activity);
+        setContentView(R.layout.search_bus_activity);
 
         initToolBar();
         initView();

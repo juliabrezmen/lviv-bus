@@ -2,6 +2,7 @@ package com.lvivbus.ui.map;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -12,6 +13,7 @@ import com.lvivbus.model.http.Converter;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.data.BusMarker;
 import com.lvivbus.ui.selectbus.BusListActivity;
+import com.lvivbus.ui.utils.GsonUtils;
 import com.lvivbus.ui.utils.PreferencesManager;
 import com.lvivbus.utils.L;
 
@@ -20,10 +22,12 @@ import java.util.concurrent.TimeUnit;
 
 public class MapPresenter {
 
+    private static final String KEY_MARKER_LIST = "Marker List";
     private MapActivity activity;
     private Bus selectedBus;
     private CountDownTimer timer;
     private AsyncTask<Bus, Void, List<BusMarker>> task;
+    private List<BusMarker> markerList;
 
     public void onAttachActivity(MapActivity mapActivity) {
         activity = mapActivity;
@@ -59,6 +63,10 @@ public class MapPresenter {
     public void onMapReady(@NonNull GoogleMap googleMap) {
         LatLng lvivCenter = new LatLng(49.842465, 24.026625);
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lvivCenter, 12f));
+
+        if (markerList != null) {
+            activity.displayMarkers(markerList);
+        }
     }
 
     private void initTimer() {
@@ -82,7 +90,8 @@ public class MapPresenter {
                 protected List<BusMarker> doInBackground(Bus... params) {
                     Bus bus = params[0];
                     L.v(String.format("Loading markers for bus: %s", bus.getName()));
-                    return Converter.toBusMarkerList(BusAPI.getBusLocation(bus.getCode()));
+                    markerList = Converter.toBusMarkerList(BusAPI.getBusLocation(bus.getCode()));
+                    return markerList;
                 }
 
                 @Override
@@ -102,5 +111,14 @@ public class MapPresenter {
         if (timer != null) {
             timer.cancel();
         }
+    }
+
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString(KEY_MARKER_LIST, GsonUtils.toJson(markerList));
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        String markers = savedInstanceState.getString(KEY_MARKER_LIST);
+        markerList = GsonUtils.fromJson(markers);
     }
 }
