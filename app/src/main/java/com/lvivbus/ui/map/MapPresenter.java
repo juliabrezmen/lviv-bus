@@ -1,15 +1,18 @@
 package com.lvivbus.ui.map;
 
 import android.content.Intent;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
+import android.util.SparseArray;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.*;
 import com.lvivbus.model.http.BusAPI;
 import com.lvivbus.model.http.Converter;
+import com.lvivbus.ui.R;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.data.BusMarker;
 import com.lvivbus.ui.selectbus.BusListActivity;
@@ -23,14 +26,17 @@ import java.util.concurrent.TimeUnit;
 public class MapPresenter {
 
     private static final String KEY_MARKER_LIST = "Marker List";
+    public static final int MIN_DISTANCE = 3;
     private MapActivity activity;
     private Bus selectedBus;
     private CountDownTimer timer;
     private AsyncTask<Bus, Void, List<BusMarker>> task;
     private List<BusMarker> markerList;
+    private SparseArray<Marker> markerMap;
 
     public void onAttachActivity(MapActivity mapActivity) {
         activity = mapActivity;
+        markerMap = new SparseArray<Marker>();
         initTimer();
     }
 
@@ -41,6 +47,7 @@ public class MapPresenter {
                 selectedBus = storedBus;
                 activity.setSubtitle(selectedBus.getName());
                 activity.clearAllMarkers();
+                markerMap.clear();
             }
         }
         timer.start();
@@ -65,8 +72,17 @@ public class MapPresenter {
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lvivCenter, 12f));
 
         if (markerList != null) {
-            activity.displayMarkers(markerList);
+            displayMarkers(markerList);
         }
+    }
+
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString(KEY_MARKER_LIST, GsonUtils.toJson(markerList));
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        String markers = savedInstanceState.getString(KEY_MARKER_LIST);
+        markerList = GsonUtils.fromJson(markers);
     }
 
     private void initTimer() {
@@ -96,7 +112,7 @@ public class MapPresenter {
 
                 @Override
                 protected void onPostExecute(List<BusMarker> markerList) {
-                    activity.displayMarkers(markerList);
+                    displayMarkers(markerList);
                 }
             };
             task.execute(selectedBus);
@@ -113,12 +129,46 @@ public class MapPresenter {
         }
     }
 
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putString(KEY_MARKER_LIST, GsonUtils.toJson(markerList));
+    private void displayMarkers(@NonNull final List<BusMarker> markerList) {
+        L.v("Displaying markers: " + markerList.size());
+        for (BusMarker busMarker : markerList) {
+            Marker storedMarker = markerMap.get(busMarker.getVehicleId());
+            if (storedMarker == null) {
+                LatLng position = new LatLng(busMarker.getLat(), busMarker.getLon());
+                BitmapDescriptor iconArrow = BitmapDescriptorFactory.fromResource(R.drawable.ic_arrow);
+                MarkerOptions options = new MarkerOptions()
+                        .position(position)
+                        .icon(iconArrow)
+                        .rotation(busMarker.getAngle())
+                        .anchor(0.5f, 0.5f);
+                Marker marker = activity.addMarker(options);
+                markerMap.put(busMarker.getVehicleId(), marker);
+            } else {
+                LatLng oldPosition = storedMarker.getPosition();
+                LatLng newPosition = new LatLng(busMarker.getLat(), busMarker.getLon());
+                if (calculateDistance(oldPosition, newPosition) > MIN_DISTANCE) {
+                    float markerBearing = calculateAngle(oldPosition, newPosition);
+                    float cameraBearing = activity.getCameraPosition().bearing;
+                    storedMarker.setRotation(markerBearing - cameraBearing);
+                    activity.animateMarker(storedMarker, newPosition);
+                }
+            }
+        }
     }
 
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-        String markers = savedInstanceState.getString(KEY_MARKER_LIST);
-        markerList = GsonUtils.fromJson(markers);
+    private float calculateAngle(LatLng from, LatLng to) {
+        return createLocation(from).bearingTo(createLocation(to));
     }
+
+    private float calculateDistance(LatLng from, LatLng to) {
+        return createLocation(from).distanceTo(createLocation(to));
+    }
+
+    private Location createLocation(LatLng from) {
+        Location pos1 = new Location("GPS");
+        pos1.setLatitude(from.latitude);
+        pos1.setLongitude(from.longitude);
+        return pos1;
+    }
+
 }

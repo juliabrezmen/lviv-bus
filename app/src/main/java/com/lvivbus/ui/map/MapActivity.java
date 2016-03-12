@@ -4,18 +4,15 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
-import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
-import android.support.annotation.UiThread;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.Interpolator;
@@ -24,12 +21,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.*;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.lvivbus.ui.R;
-import com.lvivbus.ui.data.BusMarker;
-import com.lvivbus.utils.L;
-
-import java.util.List;
 
 public class MapActivity extends AppCompatActivity {
 
@@ -37,7 +33,6 @@ public class MapActivity extends AppCompatActivity {
 
     private MapPresenter presenter;
     private GoogleMap map;
-    private SparseArray<Marker> markerMap;
     private Toolbar mToolbar;
 
     @Override
@@ -48,7 +43,6 @@ public class MapActivity extends AppCompatActivity {
         initToolBar();
         initView();
 
-        markerMap = new SparseArray<Marker>();
         presenter = new MapPresenter();
         presenter.onAttachActivity(this);
     }
@@ -117,18 +111,26 @@ public class MapActivity extends AppCompatActivity {
     public void clearAllMarkers() {
         if (map != null) {
             map.clear();
-            markerMap.clear();
         }
     }
 
-    private void animateMarker(final Marker marker, final LatLng toPosition) {
-        final Handler handler = new Handler();
-        final long start = SystemClock.uptimeMillis();
+    public Marker addMarker(MarkerOptions options) {
+        return map.addMarker(options);
+    }
+
+    public CameraPosition getCameraPosition() {
+        return map.getCameraPosition();
+    }
+
+    public void animateMarker(final Marker marker, final LatLng toPosition) {
         Projection projection = map.getProjection();
         Point startPoint = projection.toScreenLocation(marker.getPosition());
+        final Handler handler = new Handler();
         final LatLng startLatLng = projection.fromScreenLocation(startPoint);
-        final long duration = 2000;
         final Interpolator interpolator = new LinearInterpolator();
+        final long start = SystemClock.uptimeMillis();
+        final long duration = 2000;
+
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -143,56 +145,6 @@ public class MapActivity extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    private float getAngle(LatLng from, LatLng to) {
-        Location pos1 = new Location("GPS");
-        pos1.setLatitude(from.latitude);
-        pos1.setLongitude(from.longitude);
-
-        Location pos2 = new Location("GPS");
-        pos2.setLatitude(to.latitude);
-        pos2.setLongitude(to.longitude);
-        return pos1.bearingTo(pos2);
-    }
-
-    private float getDistance(LatLng from, LatLng to) {
-        Location pos1 = new Location("GPS");
-        pos1.setLatitude(from.latitude);
-        pos1.setLongitude(from.longitude);
-
-        Location pos2 = new Location("GPS");
-        pos2.setLatitude(to.latitude);
-        pos2.setLongitude(to.longitude);
-        return pos1.distanceTo(pos2);
-    }
-
-    @UiThread
-    public void displayMarkers(@NonNull final List<BusMarker> markerList) {
-        L.v("Displaying markers: " + markerList.size());
-        for (BusMarker busMarker : markerList) {
-            Marker storedMarker = markerMap.get(busMarker.getVehicleId());
-            if (storedMarker == null) {
-                LatLng position = new LatLng(busMarker.getLat(), busMarker.getLon());
-                BitmapDescriptor iconArrow = BitmapDescriptorFactory.fromResource(R.drawable.ic_arrow);
-                MarkerOptions options = new MarkerOptions()
-                        .position(position)
-                        .icon(iconArrow)
-                        .rotation(busMarker.getAngle())
-                        .anchor(0.5f, 0.5f);
-                Marker marker = map.addMarker(options);
-                markerMap.put(busMarker.getVehicleId(), marker);
-            } else {
-                LatLng oldPosition = storedMarker.getPosition();
-                LatLng newPosition = new LatLng(busMarker.getLat(), busMarker.getLon());
-                if(getDistance(oldPosition, newPosition) > 3) {
-                    float angle = getAngle(oldPosition, newPosition);
-                    float bearing = map.getCameraPosition().bearing;
-                    storedMarker.setRotation(angle - bearing);
-                    animateMarker(storedMarker,newPosition);
-                }
-            }
-        }
     }
 
     private void initToolBar() {
