@@ -70,7 +70,7 @@ public class MapPresenter {
     }
 
     private void initTimer() {
-        timer = new CountDownTimer(TimeUnit.MINUTES.toMillis(1), TimeUnit.SECONDS.toMillis(5)) {
+        timer = new CountDownTimer(TimeUnit.MINUTES.toMillis(1), TimeUnit.SECONDS.toMillis(7)) {
             @Override
             public void onTick(long millisUntilFinished) {
                 loadMarkers();
