@@ -33,6 +33,9 @@ public class MapPresenter {
     private List<BusMarker> markerList;
     private SparseArray<Marker> markerMap;
     private Handler handler;
+
+    //TODO: network check
+
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
