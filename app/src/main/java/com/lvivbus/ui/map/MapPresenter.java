@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.CountDownTimer;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.SparseArray;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,18 +26,27 @@ import java.util.concurrent.TimeUnit;
 public class MapPresenter {
 
     private static final String KEY_MARKER_LIST = "Marker List";
-    public static final int MIN_DISTANCE = 3;
+    private static final int MIN_DISTANCE = 3;
     private MapActivity activity;
     private Bus selectedBus;
-    private CountDownTimer timer;
     private AsyncTask<Bus, Void, List<BusMarker>> task;
     private List<BusMarker> markerList;
     private SparseArray<Marker> markerMap;
+    private Handler handler;
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (selectedBus != null) {
+                loadMarkers();
+            }
+        }
+    };
 
     public void onAttachActivity(MapActivity mapActivity) {
         activity = mapActivity;
         markerMap = new SparseArray<Marker>();
-        initTimer();
+        handler = new Handler();
+
     }
 
     public void onActivityVisible() {
@@ -50,7 +59,7 @@ public class MapPresenter {
                 markerMap.clear();
             }
         }
-        timer.start();
+        handler.post(runnable);
     }
 
     public void onActivityNotVisible() {
@@ -85,38 +94,23 @@ public class MapPresenter {
         markerList = GsonUtils.fromJson(markers);
     }
 
-    private void initTimer() {
-        timer = new CountDownTimer(TimeUnit.MINUTES.toMillis(1), TimeUnit.SECONDS.toMillis(7)) {
+    private void loadMarkers() {
+        task = new AsyncTask<Bus, Void, List<BusMarker>>() {
             @Override
-            public void onTick(long millisUntilFinished) {
-                loadMarkers();
+            protected List<BusMarker> doInBackground(Bus... params) {
+                Bus bus = params[0];
+                L.v(String.format("Loading markers for bus: %s", bus.getName()));
+                markerList = Converter.toBusMarkerList(BusAPI.getBusLocation(bus.getCode()));
+                return markerList;
             }
 
             @Override
-            public void onFinish() {
-                timer.start();
+            protected void onPostExecute(List<BusMarker> markerList) {
+                displayMarkers(markerList);
+                handler.postDelayed(runnable, TimeUnit.SECONDS.toMillis(5));
             }
         };
-    }
-
-    private void loadMarkers() {
-        if (selectedBus != null) {
-            task = new AsyncTask<Bus, Void, List<BusMarker>>() {
-                @Override
-                protected List<BusMarker> doInBackground(Bus... params) {
-                    Bus bus = params[0];
-                    L.v(String.format("Loading markers for bus: %s", bus.getName()));
-                    markerList = Converter.toBusMarkerList(BusAPI.getBusLocation(bus.getCode()));
-                    return markerList;
-                }
-
-                @Override
-                protected void onPostExecute(List<BusMarker> markerList) {
-                    displayMarkers(markerList);
-                }
-            };
-            task.execute(selectedBus);
-        }
+        task.execute(selectedBus);
     }
 
     private void cancelMarkerLoading() {
@@ -124,8 +118,8 @@ public class MapPresenter {
             task.cancel(false);
         }
 
-        if (timer != null) {
-            timer.cancel();
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
         }
     }
 
