@@ -21,11 +21,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.*;
 import com.lvivbus.ui.R;
+import com.lvivbus.ui.data.BusStation;
+
+import java.util.List;
 
 public class MapActivity extends AppCompatActivity {
 
@@ -60,9 +60,9 @@ public class MapActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
+    protected void onRestart() {
         presenter.onActivityVisible();
-        super.onResume();
+        super.onRestart();
     }
 
     @Override
@@ -145,6 +145,18 @@ public class MapActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    public void drawRoute(@NonNull List<BusStation> busStationList) {
+        PolylineOptions options = new PolylineOptions()
+                .width(5)
+                .color(getResources().getColor(R.color.colorPrimary))
+                .geodesic(true);
+        for (BusStation station : busStationList) {
+            LatLng point = new LatLng(station.getLat(), station.getLon());
+            options.add(point);
+        }
+        map.addPolyline(options);
     }
 
     private void initToolBar() {

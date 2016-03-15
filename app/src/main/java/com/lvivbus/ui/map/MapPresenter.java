@@ -10,15 +10,18 @@ import android.util.SparseArray;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.*;
+import com.lvivbus.model.db.BusDAO;
 import com.lvivbus.model.http.BusAPI;
 import com.lvivbus.model.http.Converter;
 import com.lvivbus.ui.R;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.data.BusMarker;
+import com.lvivbus.ui.data.BusStation;
 import com.lvivbus.ui.selectbus.BusListActivity;
 import com.lvivbus.ui.utils.GsonUtils;
 import com.lvivbus.ui.utils.PreferencesManager;
 import com.lvivbus.utils.L;
+import io.realm.Realm;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +32,7 @@ public class MapPresenter {
     private static final int MIN_DISTANCE = 3;
     private MapActivity activity;
     private Bus selectedBus;
-    private AsyncTask<Bus, Void, List<BusMarker>> task;
+    private AsyncTask<String, Void, List<BusMarker>> loadMarkersTask;
     private List<BusMarker> markerList;
     private SparseArray<Marker> markerMap;
     private Handler handler;
@@ -44,25 +47,36 @@ public class MapPresenter {
             }
         }
     };
+    private Realm realm;
+    private AsyncTask<Void, Void, List<BusStation>> loadRouteTask;
 
     public void onAttachActivity(MapActivity mapActivity) {
         activity = mapActivity;
         markerMap = new SparseArray<Marker>();
         handler = new Handler();
 
+        realm = Realm.getDefaultInstance();
+
     }
 
     public void onActivityVisible() {
-        Bus storedBus = PreferencesManager.getBus(activity.getApplicationContext());
-        if (storedBus != null) {
-            if (selectedBus == null || (selectedBus.getId() != storedBus.getId())) {
-                selectedBus = storedBus;
-                activity.setSubtitle(selectedBus.getName());
-                activity.clearAllMarkers();
-                markerMap.clear();
+        loadData();
+    }
+
+    private void loadData() {
+        int id = PreferencesManager.getBusId(activity.getApplicationContext());
+        if (id != 0) {
+            if (selectedBus == null || (selectedBus.getId() != id)) {
+                selectedBus = BusDAO.getBus(realm, id);
+                if (selectedBus != null) {
+                    activity.setSubtitle(selectedBus.getName());
+                    activity.clearAllMarkers();
+                    markerMap.clear();
+                }
             }
         }
         handler.post(runnable);
+        loadRoute();
     }
 
     public void onActivityNotVisible() {
@@ -70,6 +84,7 @@ public class MapPresenter {
     }
 
     public void onDetachActivity() {
+        realm.close();
         cancelMarkerLoading();
         activity = null;
     }
@@ -86,6 +101,7 @@ public class MapPresenter {
         if (markerList != null) {
             displayMarkers(markerList);
         }
+        loadData();
     }
 
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -97,33 +113,37 @@ public class MapPresenter {
         markerList = GsonUtils.fromJson(markers);
     }
 
-    private void loadMarkers() {
-        task = new AsyncTask<Bus, Void, List<BusMarker>>() {
-            @Override
-            protected List<BusMarker> doInBackground(Bus... params) {
-                Bus bus = params[0];
-                L.v(String.format("Loading markers for bus: %s", bus.getName()));
-                markerList = Converter.toBusMarkerList(BusAPI.getBusLocation(bus.getCode()));
-                return markerList;
+    private void loadRoute() {
+        if (selectedBus != null) {
+            if (selectedBus.getBusStations().isEmpty()) {
+                loadRouteFromInternet();
+            } else {
+                activity.drawRoute(selectedBus.getBusStations());
             }
+        }
+    }
 
-            @Override
-            protected void onPostExecute(List<BusMarker> markerList) {
-                displayMarkers(markerList);
-                handler.postDelayed(runnable, TimeUnit.SECONDS.toMillis(5));
-            }
-        };
-        task.execute(selectedBus);
+    private void loadMarkers() {
+        loadMarkersTask = new LoadMarkersTask().execute(selectedBus.getCode());
+    }
+
+    private void loadRouteFromInternet() {
+        loadRouteTask = new LoadRouteTask(selectedBus.getId(), selectedBus.getCode()).execute();
     }
 
     private void cancelMarkerLoading() {
-        if (task != null) {
-            task.cancel(false);
+        if (loadMarkersTask != null) {
+            loadMarkersTask.cancel(false);
+        }
+
+        if (loadRouteTask != null) {
+            loadRouteTask.cancel(false);
         }
 
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }
+
     }
 
     private void displayMarkers(@NonNull final List<BusMarker> markerList) {
@@ -166,6 +186,45 @@ public class MapPresenter {
         pos1.setLatitude(from.latitude);
         pos1.setLongitude(from.longitude);
         return pos1;
+    }
+
+    private class LoadMarkersTask extends AsyncTask<String, Void, List<BusMarker>> {
+        @Override
+        protected List<BusMarker> doInBackground(String... params) {
+            //L.v(String.format("Loading markers for bus: %s", bus.getName()));
+            markerList = Converter.toBusMarkerList(BusAPI.getBusLocation(params[0]));
+            return markerList;
+        }
+
+        @Override
+        protected void onPostExecute(List<BusMarker> markerList) {
+            displayMarkers(markerList);
+            handler.postDelayed(runnable, TimeUnit.SECONDS.toMillis(5));
+        }
+    }
+
+    private class LoadRouteTask extends AsyncTask<Void, Void, List<BusStation>> {
+
+        private int busId;
+        private String busCode;
+
+        public LoadRouteTask(int busId, String busCode) {
+            this.busId = busId;
+            this.busCode = busCode;
+        }
+
+        @Override
+        protected List<BusStation> doInBackground(Void... params) {
+            List<BusStation> busStationList = Converter.toBusStationList(BusAPI.getBusRoute(busCode));
+            BusDAO.setStationList(busId, busStationList);
+            return busStationList;
+
+        }
+
+        @Override
+        protected void onPostExecute(List<BusStation> busStationList) {
+            activity.drawRoute(busStationList);
+        }
     }
 
 }

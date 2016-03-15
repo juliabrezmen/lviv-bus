@@ -1,8 +1,11 @@
 package com.lvivbus.model.db;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import com.lvivbus.ui.data.Bus;
+import com.lvivbus.ui.data.BusStation;
 import io.realm.Realm;
+import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
@@ -33,13 +36,42 @@ public class BusDAO {
         return result;
     }
 
-    public static void setRecentDate(final Bus bus, final long date){
+    public static void setRecentDate(final int busId, final long date) {
         Realm.getDefaultInstance().executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                bus.setRecentDate(date);
-                realm.copyToRealmOrUpdate(bus);
+                Bus bus = getBus(realm, busId);
+                if (bus != null) {
+                    bus.setRecentDate(date);
+                    realm.copyToRealmOrUpdate(bus);
+                }
             }
         });
     }
+
+    @Nullable
+    public static Bus getBus(@NonNull Realm realm, int id) {
+        return realm.where(Bus.class).equalTo("id", id).findFirst();
+    }
+
+    public static void setStationList(final int busId, final List<BusStation> busStationList) {
+        Realm.getDefaultInstance().executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Bus bus = getBus(realm, busId);
+                if (bus != null) {
+                    RealmList<BusStation> realmList = new RealmList<BusStation>();
+                    for (BusStation busStation : busStationList) {
+                        BusStation realmObject = realm.createObject(BusStation.class);
+                        realmObject.setLat(busStation.getLat());
+                        realmObject.setLon(busStation.getLon());
+                        realmList.add(realmObject);
+                    }
+                    bus.setBusStations(realmList);
+                    realm.copyToRealmOrUpdate(bus);
+                }
+            }
+        });
+    }
+
 }

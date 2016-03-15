@@ -29,8 +29,8 @@ public class BusListPresenter {
     }
 
     public void onBusClicked(Bus bus) {
-        BusDAO.setRecentDate(bus, System.currentTimeMillis());
-        PreferencesManager.saveBus(Bus.makeRawCopy(bus), activity.getApplicationContext());
+        BusDAO.setRecentDate(bus.getId(), System.currentTimeMillis());
+        PreferencesManager.saveBusId(bus.getId(), activity.getApplicationContext());
         activity.finish();
     }
 
