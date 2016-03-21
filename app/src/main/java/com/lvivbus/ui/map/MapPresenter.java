@@ -13,6 +13,7 @@ import com.google.android.gms.maps.model.*;
 import com.lvivbus.model.db.BusDAO;
 import com.lvivbus.model.http.BusAPI;
 import com.lvivbus.model.http.Converter;
+import com.lvivbus.model.http.Internet;
 import com.lvivbus.ui.R;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.data.BusMarker;
@@ -43,7 +44,11 @@ public class MapPresenter {
         @Override
         public void run() {
             if (selectedBus != null) {
-                loadMarkers();
+                if (Internet.isOn(activity)) {
+                    loadMarkers();
+                } else {
+                    activity.showToast("No Internet");
+                }
             }
         }
     };
@@ -116,7 +121,11 @@ public class MapPresenter {
     private void loadRoute() {
         if (selectedBus != null) {
             if (selectedBus.getBusStations().isEmpty()) {
-                loadRouteFromInternet();
+                if (Internet.isOn(activity)) {
+                    loadRouteFromInternet();
+                } else {
+                    activity.showToast(activity.getString(R.string.no_connection));
+                }
             } else {
                 activity.drawRoute(selectedBus.getBusStations());
             }
