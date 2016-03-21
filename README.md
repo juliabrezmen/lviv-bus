@@ -1,3 +1,3 @@
 ### Lviv Bus
 
-![](screenshots/home.png) ![](screenshots/search.png)
+![](screenshots/home.png) [](screenshots/search.png)
