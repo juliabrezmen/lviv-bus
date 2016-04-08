@@ -38,8 +38,6 @@ public class MapPresenter {
     private SparseArray<Marker> markerMap;
     private Handler handler;
 
-    //TODO: network check
-
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
@@ -47,7 +45,7 @@ public class MapPresenter {
                 if (Internet.isOn(activity)) {
                     loadMarkers();
                 } else {
-                    activity.showToast("No Internet");
+                    activity.showToast(activity.getString(R.string.no_connection));
                 }
             }
         }
@@ -59,7 +57,6 @@ public class MapPresenter {
         activity = mapActivity;
         markerMap = new SparseArray<Marker>();
         handler = new Handler();
-
         realm = Realm.getDefaultInstance();
 
     }
@@ -116,6 +113,13 @@ public class MapPresenter {
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         String markers = savedInstanceState.getString(KEY_MARKER_LIST);
         markerList = GsonUtils.fromJson(markers);
+    }
+
+
+    public void onReceiveBroadcast() {
+        if (Internet.isOn(activity.getApplicationContext())) {
+            loadData();
+        }
     }
 
     private void loadRoute() {

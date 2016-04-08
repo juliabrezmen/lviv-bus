@@ -2,8 +2,10 @@ package com.lvivbus.ui.splash;
 
 import android.content.Intent;
 import com.lvivbus.model.db.BusDAO;
-import com.lvivbus.model.http.Converter;
 import com.lvivbus.model.http.BusAPI;
+import com.lvivbus.model.http.Converter;
+import com.lvivbus.model.http.Internet;
+import com.lvivbus.ui.R;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.map.MapActivity;
 import com.lvivbus.utils.L;
@@ -32,16 +34,20 @@ public class SplashPresenter {
     }
 
     private void loadData() {
-        Executor executor = Executors.newSingleThreadExecutor();
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                List<Bus> busList = Converter.toBusList(BusAPI.getBusList());
-                BusDAO.save(busList);
-                L.v(String.format("Buses saved: %d", busList.size()));
-                onLoadingComplete();
-            }
-        });
+        if (Internet.isOn(activity.getApplicationContext())) {
+            Executor executor = Executors.newSingleThreadExecutor();
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    List<Bus> busList = Converter.toBusList(BusAPI.getBusList());
+                    BusDAO.save(busList);
+                    L.v(String.format("Buses saved: %d", busList.size()));
+                    onLoadingComplete();
+                }
+            });
+        } else {
+            activity.showMessage(activity.getString(R.string.no_connection));
+        }
     }
 
     private void onLoadingComplete() {
@@ -59,5 +65,11 @@ public class SplashPresenter {
     private void launchMapActivity() {
         Intent intent = new Intent(activity, MapActivity.class);
         activity.startActivity(intent);
+    }
+
+    public void onReceiveBroadcast() {
+        if (Internet.isOn(activity.getApplicationContext())) {
+            loadData();
+        }
     }
 }
