@@ -1,4 +1,4 @@
 ### Lviv Bus
 
-![](screenshots/home.png)
-![](screenshots/search.png)
+<img src="screenshots/home.png" width="420" />
+<img src="screenshots/search.png" width="420" />
