@@ -2,10 +2,6 @@ package com.lvivbus.ui.map;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.os.Build;
@@ -32,8 +28,6 @@ import com.lvivbus.ui.data.BusStation;
 
 import java.util.List;
 
-import static com.lvivbus.ui.splash.SplashActivity.ACTION_CONNECTION_CHANGE;
-
 public class MapActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_ACCESS_LOCATION = 1;
@@ -41,7 +35,6 @@ public class MapActivity extends AppCompatActivity {
     private MapPresenter presenter;
     private GoogleMap map;
     private Toolbar mToolbar;
-    private NetworkChangeReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,16 +46,12 @@ public class MapActivity extends AppCompatActivity {
 
         presenter = new MapPresenter();
         presenter.onAttachActivity(this);
-
-        receiver = new NetworkChangeReceiver();
-        registerReceiver(receiver, new IntentFilter(ACTION_CONNECTION_CHANGE));
     }
 
     @Override
-    protected void onDestroy() {
-        unregisterReceiver(receiver);
-        presenter.onDetachActivity();
-        super.onDestroy();
+    protected void onRestart() {
+        presenter.onActivityVisible();
+        super.onRestart();
     }
 
     @Override
@@ -72,9 +61,9 @@ public class MapActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onRestart() {
-        presenter.onActivityVisible();
-        super.onRestart();
+    protected void onDestroy() {
+        presenter.onDetachActivity();
+        super.onDestroy();
     }
 
     @Override
@@ -203,10 +192,4 @@ public class MapActivity extends AppCompatActivity {
         }
     }
 
-    private class NetworkChangeReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            presenter.onReceiveBroadcast();
-        }
-    }
 }

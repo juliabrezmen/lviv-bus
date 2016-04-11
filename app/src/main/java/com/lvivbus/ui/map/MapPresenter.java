@@ -1,6 +1,9 @@
 package com.lvivbus.ui.map;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -27,6 +30,8 @@ import io.realm.Realm;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.lvivbus.ui.splash.SplashActivity.ACTION_CONNECTION_CHANGE;
+
 public class MapPresenter {
 
     private static final String KEY_MARKER_LIST = "Marker List";
@@ -37,6 +42,7 @@ public class MapPresenter {
     private List<BusMarker> markerList;
     private SparseArray<Marker> markerMap;
     private Handler handler;
+    private NetworkChangeReceiver receiver;
 
     private Runnable runnable = new Runnable() {
         @Override
@@ -52,16 +58,20 @@ public class MapPresenter {
     };
     private Realm realm;
     private AsyncTask<Void, Void, List<BusStation>> loadRouteTask;
+    private IntentFilter filter;
 
     public void onAttachActivity(MapActivity mapActivity) {
         activity = mapActivity;
         markerMap = new SparseArray<Marker>();
         handler = new Handler();
         realm = Realm.getDefaultInstance();
-
+        receiver = new NetworkChangeReceiver();
+        filter = new IntentFilter(ACTION_CONNECTION_CHANGE);
+        activity.registerReceiver(receiver, filter);
     }
 
     public void onActivityVisible() {
+        activity.registerReceiver(receiver, filter);
         loadData();
     }
 
@@ -82,6 +92,7 @@ public class MapPresenter {
     }
 
     public void onActivityNotVisible() {
+        activity.unregisterReceiver(receiver);
         cancelMarkerLoading();
     }
 
@@ -113,13 +124,6 @@ public class MapPresenter {
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         String markers = savedInstanceState.getString(KEY_MARKER_LIST);
         markerList = GsonUtils.fromJson(markers);
-    }
-
-
-    public void onReceiveBroadcast() {
-        if (Internet.isOn(activity.getApplicationContext())) {
-            loadData();
-        }
     }
 
     private void loadRoute() {
@@ -237,6 +241,15 @@ public class MapPresenter {
         @Override
         protected void onPostExecute(List<BusStation> busStationList) {
             activity.drawRoute(busStationList);
+        }
+    }
+
+    private class NetworkChangeReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (Internet.isOn(activity.getApplicationContext())) {
+                loadData();
+            }
         }
     }
 
