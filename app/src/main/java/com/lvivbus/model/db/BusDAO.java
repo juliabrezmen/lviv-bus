@@ -14,7 +14,7 @@ import java.util.List;
 public class BusDAO {
 
     public static void save(@NonNull final List<Bus> busList) {
-        Realm.getDefaultInstance().executeTransaction(new Realm.Transaction() {
+        executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.copyToRealmOrUpdate(busList);
@@ -37,7 +37,7 @@ public class BusDAO {
     }
 
     public static void setRecentDate(final int busId, final long date) {
-        Realm.getDefaultInstance().executeTransaction(new Realm.Transaction() {
+        executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 Bus bus = getBus(realm, busId);
@@ -55,7 +55,7 @@ public class BusDAO {
     }
 
     public static void setStationList(final int busId, final List<BusStation> busStationList) {
-        Realm.getDefaultInstance().executeTransaction(new Realm.Transaction() {
+        executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 Bus bus = getBus(realm, busId);
@@ -72,6 +72,24 @@ public class BusDAO {
                 }
             }
         });
+    }
+
+    private static void executeTransaction(@NonNull Realm.Transaction transaction) {
+        Realm realm = null;
+        try {
+            realm = Realm.getDefaultInstance();
+            realm.executeTransaction(transaction);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        } finally {
+            close(realm);
+        }
+    }
+
+    private static void close(@Nullable Realm realm) {
+        if (realm != null) {
+            realm.close();
+        }
     }
 
 }

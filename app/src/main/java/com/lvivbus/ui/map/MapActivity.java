@@ -23,8 +23,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.*;
+import com.lvivbus.model.event.NetworkChangedEvent;
 import com.lvivbus.ui.R;
 import com.lvivbus.ui.data.BusStation;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.List;
 
@@ -103,6 +105,11 @@ public class MapActivity extends AppCompatActivity {
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         presenter.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Subscribe
+    public void onEvent(NetworkChangedEvent event) {
+        presenter.onEvent(event);
     }
 
     public void setSubtitle(@NonNull String text) {

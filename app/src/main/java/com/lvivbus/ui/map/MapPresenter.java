@@ -1,9 +1,6 @@
 package com.lvivbus.ui.map;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,6 +11,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.*;
 import com.lvivbus.model.db.BusDAO;
+import com.lvivbus.model.event.NetworkChangedEvent;
 import com.lvivbus.model.http.BusAPI;
 import com.lvivbus.model.http.Converter;
 import com.lvivbus.model.http.Internet;
@@ -26,11 +24,10 @@ import com.lvivbus.ui.utils.GsonUtils;
 import com.lvivbus.ui.utils.PreferencesManager;
 import com.lvivbus.utils.L;
 import io.realm.Realm;
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.lvivbus.ui.splash.SplashActivity.ACTION_CONNECTION_CHANGE;
 
 public class MapPresenter {
 
@@ -42,7 +39,8 @@ public class MapPresenter {
     private List<BusMarker> markerList;
     private SparseArray<Marker> markerMap;
     private Handler handler;
-    private NetworkChangeReceiver receiver;
+    private EventBus eventBus = EventBus.getDefault();
+
 
     private Runnable runnable = new Runnable() {
         @Override
@@ -58,20 +56,18 @@ public class MapPresenter {
     };
     private Realm realm;
     private AsyncTask<Void, Void, List<BusStation>> loadRouteTask;
-    private IntentFilter filter;
 
     public void onAttachActivity(MapActivity mapActivity) {
         activity = mapActivity;
         markerMap = new SparseArray<Marker>();
         handler = new Handler();
         realm = Realm.getDefaultInstance();
-        receiver = new NetworkChangeReceiver();
-        filter = new IntentFilter(ACTION_CONNECTION_CHANGE);
-        activity.registerReceiver(receiver, filter);
+        eventBus.register(activity);
     }
 
     public void onActivityVisible() {
-        activity.registerReceiver(receiver, filter);
+        eventBus.register(activity);
+        L.i("Register in visible");
         loadData();
     }
 
@@ -92,7 +88,7 @@ public class MapPresenter {
     }
 
     public void onActivityNotVisible() {
-        activity.unregisterReceiver(receiver);
+        eventBus.unregister(activity);
         cancelMarkerLoading();
     }
 
@@ -124,6 +120,12 @@ public class MapPresenter {
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         String markers = savedInstanceState.getString(KEY_MARKER_LIST);
         markerList = GsonUtils.fromJson(markers);
+    }
+
+    public void onEvent(NetworkChangedEvent event) {
+        if (event.isConnected()) {
+            loadData();
+        }
     }
 
     private void loadRoute() {
@@ -244,13 +246,5 @@ public class MapPresenter {
         }
     }
 
-    private class NetworkChangeReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            if (Internet.isOn(activity.getApplicationContext())) {
-                loadData();
-            }
-        }
-    }
 
 }

@@ -37,6 +37,11 @@
             android:name=".selectbus.BusListActivity"
             android:screenOrientation="portrait"
             android:label="@string/app_name" />
+        <receiver android:name="com.lvivbus.model.broadcasts.NetworkChangeReceiver">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
 
         <meta-data
             android:name="com.google.android.gms.version"

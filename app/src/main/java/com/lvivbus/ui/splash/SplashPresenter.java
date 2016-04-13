@@ -2,6 +2,7 @@ package com.lvivbus.ui.splash;
 
 import android.content.Intent;
 import com.lvivbus.model.db.BusDAO;
+import com.lvivbus.model.event.NetworkChangedEvent;
 import com.lvivbus.model.http.BusAPI;
 import com.lvivbus.model.http.Converter;
 import com.lvivbus.model.http.Internet;
@@ -9,6 +10,7 @@ import com.lvivbus.ui.R;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.map.MapActivity;
 import com.lvivbus.utils.L;
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -17,9 +19,11 @@ import java.util.concurrent.Executors;
 public class SplashPresenter {
 
     private SplashActivity activity;
+    private EventBus eventBus = EventBus.getDefault();
 
     public void onAttachActivity(SplashActivity mapActivity) {
         this.activity = mapActivity;
+        eventBus.register(activity);
 
         if (BusDAO.getAllCount() == 0) {
             loadData();
@@ -30,7 +34,14 @@ public class SplashPresenter {
     }
 
     public void onDetachActivity() {
+        eventBus.unregister(activity);
         activity = null;
+    }
+
+    public void onEvent(NetworkChangedEvent event) {
+        if (event.isConnected()) {
+            loadData();
+        }
     }
 
     private void loadData() {
@@ -67,9 +78,4 @@ public class SplashPresenter {
         activity.startActivity(intent);
     }
 
-    public void onReceiveBroadcast() {
-        if (Internet.isOn(activity.getApplicationContext())) {
-            loadData();
-        }
-    }
 }
