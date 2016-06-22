@@ -2,10 +2,7 @@ package com.lvivbus.ui.selectbus;
 
 import android.app.SearchManager;
 import android.content.Context;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -15,33 +12,46 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import com.lvivbus.ui.R;
+import com.lvivbus.ui.abs.AbsActivity;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.utils.DividerItemDecoration;
 import com.lvivbus.utils.L;
 
 import java.util.List;
 
-public class BusListActivity extends AppCompatActivity {
+public class BusListActivity extends AbsActivity<BusListPresenter> {
     private BusListAdapter adapter;
-    private BusListPresenter presenter;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.search_bus_activity);
-
-        initToolBar();
-        initView();
-
-        presenter = new BusListPresenter();
-        presenter.onAttachActivity(this);
-
+    protected BusListPresenter createPresenter() {
+        return new BusListPresenter(this);
     }
 
     @Override
-    protected void onDestroy() {
-        presenter.onDetachActivity();
-        super.onDestroy();
+    protected void initView() {
+        setContentView(R.layout.search_bus_activity);
+        initToolBar();
+
+        RecyclerView rvBusList = (RecyclerView) findViewById(R.id.rv_bus_list);
+        rvBusList.setHasFixedSize(true);
+
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(this, R.drawable.divider);
+
+        int leftPadding = (int) getResources().getDimension(R.dimen.decorator_left_padding);
+        int rightPadding = (int) getResources().getDimension(R.dimen.decorator_right_padding);
+        dividerItemDecoration.setPadding(leftPadding, rightPadding);
+        rvBusList.addItemDecoration(dividerItemDecoration);
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        rvBusList.setLayoutManager(layoutManager);
+
+        adapter = new BusListAdapter(getApplicationContext(), new BusListAdapter.Listener() {
+            @Override
+            public void onBusClicked(Bus bus) {
+                presenter.onBusClicked(bus);
+            }
+        });
+        rvBusList.setAdapter(adapter);
     }
 
     @Override
@@ -93,30 +103,6 @@ public class BusListActivity extends AppCompatActivity {
     public void setData(@NonNull List<Bus> recentList, @NonNull List<Bus> busList) {
         adapter.setData(recentList, busList);
         adapter.notifyDataSetChanged();
-    }
-
-    private void initView() {
-        RecyclerView rvBusList = (RecyclerView) findViewById(R.id.rv_bus_list);
-        rvBusList.setHasFixedSize(true);
-
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(this, R.drawable.divider);
-
-        int leftPadding = (int) getResources().getDimension(R.dimen.decorator_left_padding);
-        int rightPadding = (int) getResources().getDimension(R.dimen.decorator_right_padding);
-        dividerItemDecoration.setPadding(leftPadding, rightPadding);
-        rvBusList.addItemDecoration(dividerItemDecoration);
-
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        rvBusList.setLayoutManager(layoutManager);
-
-
-        adapter = new BusListAdapter(getApplicationContext(), new BusListAdapter.Listener() {
-            @Override
-            public void onBusClicked(Bus bus) {
-                presenter.onBusClicked(bus);
-            }
-        });
-        rvBusList.setAdapter(adapter);
     }
 
     private void initToolBar() {

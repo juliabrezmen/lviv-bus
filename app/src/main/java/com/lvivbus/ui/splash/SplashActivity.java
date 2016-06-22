@@ -1,38 +1,23 @@
 package com.lvivbus.ui.splash;
 
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
-import com.lvivbus.model.event.NetworkChangedEvent;
 import com.lvivbus.ui.R;
-import org.greenrobot.eventbus.Subscribe;
+import com.lvivbus.ui.abs.AbsActivity;
 
-public class SplashActivity extends AppCompatActivity {
-
-    private SplashPresenter presenter;
+public class SplashActivity extends AbsActivity<SplashPresenter> {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.splash_activity);
-
-        presenter = new SplashPresenter();
-        presenter.onAttachActivity(this);
+    protected SplashPresenter createPresenter() {
+        return new SplashPresenter(this);
     }
 
     @Override
-    protected void onDestroy() {
-        presenter.onDetachActivity();
-        super.onDestroy();
+    protected void initView() {
+        setContentView(R.layout.splash_activity);
     }
 
     public void showMessage(String message) {
         TextView txtMessage = (TextView) findViewById(R.id.txt_message);
         txtMessage.setText(message);
-    }
-
-    @Subscribe
-    public void onEvent(NetworkChangedEvent event) {
-        presenter.onEvent(event);
     }
 }

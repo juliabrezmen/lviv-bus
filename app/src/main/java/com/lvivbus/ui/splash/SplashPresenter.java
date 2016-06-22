@@ -1,29 +1,36 @@
 package com.lvivbus.ui.splash;
 
 import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import com.lvivbus.model.db.BusDAO;
 import com.lvivbus.model.event.NetworkChangedEvent;
 import com.lvivbus.model.http.BusAPI;
 import com.lvivbus.model.http.Converter;
 import com.lvivbus.model.http.Internet;
 import com.lvivbus.ui.R;
+import com.lvivbus.ui.abs.AbsPresenter;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.map.MapActivity;
 import com.lvivbus.utils.L;
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class SplashPresenter {
+public class SplashPresenter extends AbsPresenter<SplashActivity> {
 
-    private SplashActivity activity;
     private EventBus eventBus = EventBus.getDefault();
 
-    public void onAttachActivity(SplashActivity mapActivity) {
-        this.activity = mapActivity;
-        eventBus.register(activity);
+    public SplashPresenter(SplashActivity activity) {
+        super(activity);
+    }
+
+    @Override
+    protected void initPresenter(@Nullable Bundle savedInstanceState) {
+        eventBus.register(this);
 
         if (BusDAO.getAllCount() == 0) {
             loadData();
@@ -33,11 +40,13 @@ public class SplashPresenter {
         }
     }
 
-    public void onDetachActivity() {
-        eventBus.unregister(activity);
-        activity = null;
+    @Override
+    protected void onDestroyActivity() {
+        eventBus.unregister(this);
+        super.onDestroyActivity();
     }
 
+    @Subscribe
     public void onEvent(NetworkChangedEvent event) {
         if (event.isConnected()) {
             loadData();

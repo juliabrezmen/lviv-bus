@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.SparseArray;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -16,6 +17,7 @@ import com.lvivbus.model.http.BusAPI;
 import com.lvivbus.model.http.Converter;
 import com.lvivbus.model.http.Internet;
 import com.lvivbus.ui.R;
+import com.lvivbus.ui.abs.AbsPresenter;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.data.BusMarker;
 import com.lvivbus.ui.data.BusStation;
@@ -25,15 +27,15 @@ import com.lvivbus.ui.utils.PreferencesManager;
 import com.lvivbus.utils.L;
 import io.realm.Realm;
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class MapPresenter {
+public class MapPresenter extends AbsPresenter<MapActivity> {
 
     private static final String KEY_MARKER_LIST = "Marker List";
     private static final int MIN_DISTANCE = 3;
-    private MapActivity activity;
     private Bus selectedBus;
     private AsyncTask<String, Void, List<BusMarker>> loadMarkersTask;
     private List<BusMarker> markerList;
@@ -57,16 +59,31 @@ public class MapPresenter {
     private Realm realm;
     private AsyncTask<Void, Void, List<BusStation>> loadRouteTask;
 
-    public void onAttachActivity(MapActivity mapActivity) {
-        activity = mapActivity;
-        markerMap = new SparseArray<Marker>();
-        handler = new Handler();
-        realm = Realm.getDefaultInstance();
-        eventBus.register(activity);
+    public MapPresenter(MapActivity activity) {
+        super(activity);
+    }
+
+    @Override
+    protected void initPresenter(@Nullable Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            onRestoreInstanceState(savedInstanceState);
+        } else {
+            markerMap = new SparseArray<Marker>();
+            handler = new Handler();
+            realm = Realm.getDefaultInstance();
+            eventBus.register(this);
+        }
+    }
+
+    @Override
+    protected void onDestroyActivity() {
+        realm.close();
+        cancelMarkerLoading();
+        super.onDestroyActivity();
     }
 
     public void onActivityVisible() {
-        eventBus.register(activity);
+        eventBus.register(this);
         L.i("Register in visible");
         loadData();
     }
@@ -88,14 +105,8 @@ public class MapPresenter {
     }
 
     public void onActivityNotVisible() {
-        eventBus.unregister(activity);
+        eventBus.unregister(this);
         cancelMarkerLoading();
-    }
-
-    public void onDetachActivity() {
-        realm.close();
-        cancelMarkerLoading();
-        activity = null;
     }
 
     public void onToolbarFilterClicked() {
@@ -117,11 +128,12 @@ public class MapPresenter {
         savedInstanceState.putString(KEY_MARKER_LIST, GsonUtils.toJson(markerList));
     }
 
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
+    private void onRestoreInstanceState(Bundle savedInstanceState) {
         String markers = savedInstanceState.getString(KEY_MARKER_LIST);
         markerList = GsonUtils.fromJson(markers);
     }
 
+    @Subscribe
     public void onEvent(NetworkChangedEvent event) {
         if (event.isConnected()) {
             loadData();

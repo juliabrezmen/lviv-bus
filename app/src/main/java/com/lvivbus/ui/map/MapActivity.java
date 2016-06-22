@@ -4,51 +4,36 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
-import android.widget.Toast;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.*;
-import com.lvivbus.model.event.NetworkChangedEvent;
 import com.lvivbus.ui.R;
+import com.lvivbus.ui.abs.AbsActivity;
 import com.lvivbus.ui.data.BusStation;
-import org.greenrobot.eventbus.Subscribe;
 
 import java.util.List;
 
-public class MapActivity extends AppCompatActivity {
+import static android.os.Build.VERSION_CODES.M;
+
+public class MapActivity extends AbsActivity<MapPresenter> {
 
     private static final int REQUEST_CODE_ACCESS_LOCATION = 1;
 
-    private MapPresenter presenter;
     private GoogleMap map;
     private Toolbar mToolbar;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.map_activity);
-
-        initToolBar();
-        initView();
-
-        presenter = new MapPresenter();
-        presenter.onAttachActivity(this);
-    }
 
     @Override
     protected void onRestart() {
@@ -63,9 +48,23 @@ public class MapActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        presenter.onDetachActivity();
-        super.onDestroy();
+    protected MapPresenter createPresenter() {
+        return new MapPresenter(this);
+    }
+
+    @Override
+    protected void initView() {
+        setContentView(R.layout.map_activity);
+        initToolBar();
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                map = googleMap;
+                presenter.onMapReady(googleMap);
+                displayMyLocation();
+            }
+        });
     }
 
     @Override
@@ -101,23 +100,8 @@ public class MapActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
     }
 
-    @Override
-    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        presenter.onRestoreInstanceState(savedInstanceState);
-    }
-
-    @Subscribe
-    public void onEvent(NetworkChangedEvent event) {
-        presenter.onEvent(event);
-    }
-
     public void setSubtitle(@NonNull String text) {
         mToolbar.setSubtitle(text);
-    }
-
-    public void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     public void clearAllMarkers() {
@@ -176,19 +160,7 @@ public class MapActivity extends AppCompatActivity {
         setSupportActionBar(mToolbar);
     }
 
-    private void initView() {
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(GoogleMap googleMap) {
-                map = googleMap;
-                presenter.onMapReady(googleMap);
-                displayMyLocation();
-            }
-        });
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
+    @TargetApi(M)
     private void displayMyLocation() {
         int accessFineLocationResult = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int accessCoarseLocation = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);

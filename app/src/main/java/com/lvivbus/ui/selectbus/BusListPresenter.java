@@ -1,6 +1,9 @@
 package com.lvivbus.ui.selectbus;
 
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import com.lvivbus.model.db.BusDAO;
+import com.lvivbus.ui.abs.AbsPresenter;
 import com.lvivbus.ui.data.Bus;
 import com.lvivbus.ui.utils.PreferencesManager;
 import com.lvivbus.ui.utils.SortUtils;
@@ -10,22 +13,26 @@ import io.realm.RealmResults;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BusListPresenter {
+public class BusListPresenter extends AbsPresenter<BusListActivity> {
 
     private static final int MAX_RECENT_COUNT = 3;
 
-    private BusListActivity activity;
     private Realm realm;
 
-    public void onAttachActivity(BusListActivity busListActivity) {
-        activity = busListActivity;
+    public BusListPresenter(BusListActivity activity) {
+        super(activity);
+    }
+
+    @Override
+    protected void initPresenter(@Nullable Bundle savedInstanceState) {
         realm = Realm.getDefaultInstance();
         loadData();
     }
 
-    public void onDetachActivity() {
+    @Override
+    protected void onDestroyActivity() {
         realm.close();
-        activity = null;
+        super.onDestroyActivity();
     }
 
     public void onBusClicked(Bus bus) {
